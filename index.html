@@ -3,166 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shared/Individual State Test</title>
-<style>
-  :root {
-    --btn-red: #c0392b;
-    --btn-red-dark: #922b21;
-  }
-  html, body {
-    height: 100%;
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    transition: background-color 0.3s ease;
-  }
-  body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 32px;
-    background-color: #f4f1ea;
-  }
-  #counter-display {
-    font-size: 4rem;
-    font-weight: 700;
-    color: #222;
-    background: rgba(255,255,255,0.6);
-    padding: 8px 32px;
-    border-radius: 12px;
-    min-width: 120px;
-    text-align: center;
-  }
-  #counter-label {
-    font-size: 0.9rem;
-    letter-spacing: 0.02em;
-    color: #555;
-    margin-bottom: -20px;
-  }
-  #big-button {
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    background: var(--btn-red);
-    border: none;
-    color: white;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 6px 0 var(--btn-red-dark), 0 8px 16px rgba(0,0,0,0.2);
-    transition: transform 0.05s ease;
-  }
-  #big-button:active {
-    transform: translateY(4px);
-    box-shadow: 0 2px 0 var(--btn-red-dark), 0 4px 8px rgba(0,0,0,0.2);
-  }
-
-  /* Color picker modal */
-  #picker-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-  }
-  #picker-box {
-    background: white;
-    padding: 32px 40px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-  }
-  #picker-box h2 {
-    margin-top: 0;
-    font-size: 1.2rem;
-    color: #222;
-  }
-  #swatches {
-    display: flex;
-    gap: 14px;
-    margin-top: 20px;
-  }
-  .swatch {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: 3px solid transparent;
-    cursor: pointer;
-  }
-  .swatch:hover {
-    border-color: #333;
-  }
-  #picker-overlay.hidden { display: none; }
-  #game-area.hidden { display: none; }
-</style>
+<title>Spirit Island Test</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<!-- Invader card track: pinned top-left -->
+  <div id="invader-track">
+    <div class="invader-slot">
+      <div class="slot-label">EXPLORE</div>
+      <div class="deck-card" id="deck-visual">
+        <div class="deck-count" id="deck-count-badge">0</div>
+      </div>
+    </div>
+    <div class="track-arrow">&#8595;</div>
+    <div class="invader-slot">
+      <div class="slot-label">BUILD</div>
+      <div id="build-slot-visual" class="card-placeholder">Empty</div>
+    </div>
+    <div class="track-arrow">&#8595;</div>
+    <div class="invader-slot">
+      <div class="slot-label">RAVAGE</div>
+      <div id="ravage-slot-visual" class="card-placeholder">Empty</div>
+    </div>
+  </div>
 
-  <!-- Color picker shown on load -->
-  <div id="picker-overlay">
-    <div id="picker-box">
-      <h2>Pick your color</h2>
-      <div id="swatches">
-        <div class="swatch" style="background:#e74c3c" data-color="#e74c3c"></div>
-        <div class="swatch" style="background:#3498db" data-color="#3498db"></div>
-        <div class="swatch" style="background:#2ecc71" data-color="#2ecc71"></div>
-        <div class="swatch" style="background:#f1c40f" data-color="#f1c40f"></div>
-        <div class="swatch" style="background:#9b59b6" data-color="#9b59b6"></div>
+  <div id="phase-track"></div>
+  <div id="board-wrapper">
+    <div id="board-container"></div>
+  </div>
+
+  <div id="player-row">
+    <div class="pile-wrapper" id="discard-pile-wrapper" title="Discard Pile">
+      <div class="deck-card pile-card">
+        <div class="deck-count" id="discard-count-badge">0</div>
+        <div class="pile-icon-overlay" id="discard-icon-overlay"></div>
+      </div>
+    </div>
+    <div class="pile-wrapper" id="hand-pile-wrapper" title="Hand">
+      <div class="deck-card pile-card">
+        <div class="deck-count" id="hand-count-badge">0</div>
+        <div class="pile-icon-overlay" id="hand-icon-overlay"></div>
+      </div>
+    </div>
+    <div id="rock-icon-wrapper">
+      <button id="spirit-board-toggle" title="Open spirit board">&#129704;</button>
+      <div id="spirit-energy-badge">0+2</div>
+    </div>
+    <div id="played-cards-row"></div>
+  </div>
+
+  <div id="hint-text">Click a piece on the board to remove one.</div>
+
+  <button id="ready-btn">&#10007; Ready?</button>
+
+  <!-- Blight cascade prompt -->
+  <div id="cascade-overlay" class="hidden">
+    <div id="cascade-box">
+      <div id="cascade-message"></div>
+      <div id="cascade-options"></div>
+    </div>
+  </div>
+
+  <!-- Spirit board panel -->
+  <div id="spirit-board-overlay" class="hidden">
+    <div id="spirit-board-panel">
+      <button id="spirit-board-close">&#10005;</button>
+      <h2 id="spirit-board-title">Vital Strength of the Earth</h2>
+
+      <div class="spirit-section">
+        <h3>Growth</h3>
+        <div id="growth-options" class="growth-options"></div>
+      </div>
+
+      <div class="spirit-section">
+        <h3>Presence Tracks</h3>
+        <div class="track-row-label">Energy</div>
+        <div id="energy-track-row" class="track-row"></div>
+        <div class="track-row-label">Card Plays</div>
+        <div id="cardplay-track-row" class="track-row"></div>
+      </div>
+
+      <div class="spirit-section">
+        <h3>Innate Powers &amp; Special Rules</h3>
+        <div id="innate-powers-list"></div>
       </div>
     </div>
   </div>
 
-  <!-- Main game area -->
-  <div id="game-area" class="hidden">
-    <div id="counter-label">TOTAL CLICKS (SHARED)</div>
-    <div id="counter-display">0</div>
-    <button id="big-button">CLICK ME</button>
+  <!-- Hand / Discard panel (shared) -->
+  <div id="card-panel-overlay" class="hidden">
+    <div id="card-panel">
+      <button id="card-panel-close">&#10005;</button>
+      <h2 id="card-panel-title">Hand</h2>
+      <div id="card-panel-row"></div>
+    </div>
   </div>
 
-  <!-- Firebase SDKs -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getDatabase, ref, onValue, runTransaction
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  <!-- Right-click card zoom -->
+  <div id="card-zoom-overlay" class="hidden">
+    <div id="card-zoom-panel">
+      <button id="card-zoom-close">&#10005;</button>
+      <div id="card-zoom-content"></div>
+    </div>
+  </div>
 
-    // TODO: paste your Firebase project config here
-    const firebaseConfig = {
-      apiKey: "AIzaSyCrvwuA5l3BWNogdXtDBfWpAnue7z79vVo",
-      authDomain: "island-defender-83985.firebaseapp.com",
-      databaseURL: "https://island-defender-83985-default-rtdb.firebaseio.com",
-      projectId: "island-defender-83985",
-      storageBucket: "island-defender-83985.firebasestorage.app",
-      messagingSenderId: "676196488207",
-      appId: "1:676196488207:web:41d3251f23190c4ecdbf7a"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const counterRef = ref(db, "sharedCounter");
-
-    // --- Shared state: listen for changes from ANY player ---
-    onValue(counterRef, (snapshot) => {
-      const value = snapshot.val() || 0;
-      document.getElementById("counter-display").textContent = value;
-    });
-
-    // --- Shared state: increment for everyone when clicked ---
-    document.getElementById("big-button").addEventListener("click", () => {
-      runTransaction(counterRef, (currentValue) => (currentValue || 0) + 1);
-    });
-
-    // --- Individual state: color picker (local only, not synced) ---
-    document.querySelectorAll(".swatch").forEach((swatch) => {
-      swatch.addEventListener("click", () => {
-        const color = swatch.dataset.color;
-        document.body.style.backgroundColor = color;
-        document.getElementById("picker-overlay").classList.add("hidden");
-        document.getElementById("game-area").classList.remove("hidden");
-      });
-    });
-  </script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

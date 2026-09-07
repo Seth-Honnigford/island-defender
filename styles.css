@@ -1,0 +1,791 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    background-color: #0099ff;
+    padding: 20px 12px 60px;
+    box-sizing: border-box;
+  }
+
+  #phase-track {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 2;
+  }
+  .phase-slot {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    z-index: 2;
+  }
+  .phase-slot svg {
+    width: 100%;
+    height: 100%;
+  }
+  .phase-arrow {
+    color: white;
+    font-size: 1.2rem;
+    opacity: 0.85;
+    z-index: 2;
+  }
+  .phase-cardback-icon {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    background: repeating-linear-gradient(45deg, #1b2a4a, #1b2a4a 4px, #26386b 4px, #26386b 8px);
+    border: 2px solid white;
+    box-sizing: border-box;
+  }
+  #phase-highlight {
+    position: absolute;
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,221,51,0.9) 0%, rgba(255,221,51,0.5) 40%, rgba(255,221,51,0) 75%);
+    z-index: 1;
+    transition: left 0.6s ease, top 0.6s ease;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  #ready-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 14px 22px;
+    border-radius: 10px;
+    border: 3px solid #922b21;
+    background: #e74c3c;
+    color: white;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 8;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  #ready-btn.ready {
+    background: #27ae60;
+    border-color: #1e8449;
+  }
+  #ready-btn:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+
+  #phase-fade-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0);
+    opacity: 0;
+    transition: opacity 0.5s ease, background 0.5s ease;
+    z-index: 50;
+  }
+  #phase-fade-overlay.visible {
+    opacity: 1;
+    background: rgba(0,0,0,0.45);
+  }
+  .phase-fade-icon {
+    width: 150px;
+    height: 150px;
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.5));
+  }
+  .phase-fade-text {
+    margin-top: 16px;
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+
+  #board-wrapper {
+    position: relative;
+    width: 600px;
+    max-width: 95vw;
+    height: 460px;
+  }
+
+  #board-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  #adjacency-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .land {
+    position: absolute;
+    width: 120px;
+    height: 110px;
+    border-radius: 18px;
+    border: 3px solid rgba(0,0,0,0.35);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    box-sizing: border-box;
+    padding: 6px;
+    z-index: 2;
+  }
+
+  .terrain-mountain { background: #9aa0a6; }
+  .terrain-wetland   { background: #6fc7c2; }
+  .terrain-jungle    { background: #4c9a5b; }
+  .terrain-sands     { background: #d9b968; }
+
+  .land-number {
+    position: absolute;
+    top: 4px;
+    left: 8px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: rgba(0,0,0,0.8);
+    text-shadow: 0 0 3px rgba(255,255,255,0.9), 0 0 3px rgba(255,255,255,0.9);
+  }
+
+  .coastal-tag {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(30,90,150,0.75);
+    padding: 2px 5px;
+    border-radius: 8px;
+  }
+
+  .land-pieces {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    right: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .piece-badge {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.62rem;
+    font-weight: 700;
+    border: 2px solid rgba(0,0,0,0.25);
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.05s ease, opacity 0.1s ease;
+  }
+  .piece-badge:hover {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
+  .piece-badge:active {
+    transform: scale(0.95);
+  }
+
+  .piece-count {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    background: #222;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 0.62rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid white;
+    pointer-events: none;
+  }
+
+  /* Dahan: not an invader, keeps its own color */
+  .piece-dahan     { background: #8b5a2b; color: white; }
+  /* Invader pieces: white to draw the eye */
+  .piece-city      { background: #ffffff; color: #222; }
+  .piece-town      { background: #ffffff; color: #222; }
+  .piece-explorer  { background: #ffffff; color: #222; }
+  /* Blight: not an invader piece, keeps its own color */
+  .piece-blight    { background: #3b2b4a; color: white; }
+
+  /* Big circle that shrinks/fades into place when a piece is added */
+  .piece-burst {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.3rem;
+    z-index: 6;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    transition: transform 1.6s ease-in, opacity 1.6s ease-in;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+  .piece-burst.shrink {
+    transform: translate(-50%, -50%) scale(0.1);
+    opacity: 0;
+  }
+
+  /* --- Invader card track (now pinned top-left, vertical) --- */
+  #invader-track {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 5;
+  }
+  .invader-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .slot-label {
+    color: white;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    letter-spacing: 0.03em;
+  }
+  .track-arrow {
+    color: white;
+    font-size: 1.2rem;
+    opacity: 0.85;
+  }
+
+  .deck-card {
+    width: 74px;
+    height: 102px;
+    border-radius: 10px;
+    background: repeating-linear-gradient(45deg, #1b2a4a, #1b2a4a 6px, #26386b 6px, #26386b 12px);
+    border: 3px solid white;
+    position: relative;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    box-sizing: border-box;
+  }
+  .deck-count {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    background: #222;
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 2px solid white;
+  }
+
+  .card-placeholder {
+    width: 74px;
+    height: 102px;
+    border-radius: 10px;
+    border: 3px dashed rgba(255,255,255,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.7);
+    font-size: 0.65rem;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .card-face {
+    width: 74px;
+    height: 102px;
+    border-radius: 10px;
+    border: 3px solid white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    box-sizing: border-box;
+  }
+  .card-face-half {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.62rem;
+    text-align: center;
+    padding: 2px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  }
+
+  #traveling-card {
+    position: absolute;
+    z-index: 15;
+    transform-origin: center;
+  }
+
+  #hint-text {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.8rem;
+    text-align: center;
+    max-width: 500px;
+    margin-top: 2px;
+  }
+
+  /* --- Player row: rock icon opens the spirit board --- */
+  #player-row {
+    width: 600px;
+    max-width: 95vw;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-left: 40px;
+    box-sizing: border-box;
+  }
+  .pile-wrapper {
+    position: relative;
+    cursor: pointer;
+  }
+  .pile-card {
+    cursor: pointer;
+    transition: transform 0.05s ease;
+  }
+  .pile-card:active {
+    transform: translateY(2px);
+  }
+  .pile-icon-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 34px;
+    height: 34px;
+    pointer-events: none;
+  }
+  .pile-icon-overlay svg {
+    width: 100%;
+    height: 100%;
+  }
+  #rock-icon-wrapper {
+    position: relative;
+  }
+  #spirit-board-toggle {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #8a8a7f;
+    border: 3px solid #5f5f56;
+    font-size: 2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #spirit-board-toggle:active {
+    transform: translateY(2px);
+  }
+  #spirit-energy-badge {
+    position: absolute;
+    top: -10px;
+    right: -14px;
+    background: #222;
+    color: white;
+    border-radius: 12px;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border: 2px solid white;
+    white-space: nowrap;
+  }
+
+  /* Cascade prompt modal */
+  #cascade-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+  }
+  #cascade-overlay.hidden { display: none; }
+  #cascade-box {
+    background: white;
+    padding: 28px 32px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 360px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  #cascade-message {
+    color: #222;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+  #cascade-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .cascade-option-btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: 2px solid #3b2b4a;
+    background: #3b2b4a;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .cascade-option-btn:hover {
+    background: #55406a;
+  }
+
+  /* --- Spirit board panel --- */
+  #spirit-board-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+  }
+  #spirit-board-overlay.hidden { display: none; }
+  #spirit-board-panel {
+    position: relative;
+    background: #f6f1e4;
+    border-radius: 16px;
+    padding: 28px 30px 24px;
+    width: 520px;
+    max-width: 92vw;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+  #spirit-board-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #c0392b;
+    color: white;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  #spirit-board-title {
+    margin: 0 0 18px;
+    color: #3a2c1a;
+    font-size: 1.3rem;
+    border-bottom: 3px solid #8b5a2b;
+    padding-bottom: 8px;
+  }
+  .spirit-section {
+    margin-bottom: 22px;
+  }
+  .spirit-section h3 {
+    margin: 0 0 10px;
+    color: #4a3b22;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .growth-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .growth-option {
+    background: #e5dcc4;
+    border: 2px solid #b8a878;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: #3a2c1a;
+  }
+  .growth-option-number {
+    font-weight: 800;
+    margin-right: 6px;
+  }
+  .track-row-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #4a3b22;
+    margin-bottom: 4px;
+  }
+  .track-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .track-slot {
+    width: 42px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .track-value-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: #dff0d8;
+    border: 2px solid #4a7a4a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: #222;
+  }
+  .track-token {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #8b5a2b;
+    border: 2px solid #5c3a1a;
+  }
+  .track-hidden-value {
+    font-size: 0.68rem;
+    color: #555;
+    margin-top: 3px;
+    font-weight: 700;
+  }
+  .innate-placeholder {
+    background: #e5dcc4;
+    border: 2px dashed #b8a878;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    color: #6b5b3a;
+    margin-bottom: 8px;
+  }
+
+  /* --- Hand / Discard card panel (thinner, cards laid out horizontally) --- */
+  #card-panel-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+  }
+  #card-panel-overlay.hidden { display: none; }
+  #card-panel {
+    position: relative;
+    background: #f6f1e4;
+    border-radius: 16px;
+    padding: 26px 28px 20px;
+    width: 640px;
+    max-width: 94vw;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+  #card-panel-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #c0392b;
+    color: white;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  #card-panel-title {
+    margin: 0 0 14px;
+    color: #3a2c1a;
+    font-size: 1.2rem;
+    border-bottom: 3px solid #8b5a2b;
+    padding-bottom: 8px;
+  }
+  #card-panel-row {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 10px 4px;
+    min-height: 130px;
+    align-items: center;
+  }
+  .card-placeholder-slot {
+    width: 84px;
+    height: 116px;
+    border-radius: 10px;
+    border: 3px dashed #b8a878;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b5b3a;
+    font-size: 0.7rem;
+    text-align: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding: 6px;
+  }
+  .card-panel-empty-text {
+    color: #6b5b3a;
+    font-style: italic;
+    font-size: 0.9rem;
+    padding: 20px;
+  }
+
+  /* --- Real card visuals (image-based, 500x700 aspect ratio) --- */
+  .card-visual {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    background: #ddd;
+    cursor: pointer;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .card-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .card-visual.card-visual-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.72rem;
+    color: #333;
+    padding: 6px;
+    box-sizing: border-box;
+  }
+  /* Larger size, used in the hand/discard panel */
+  .card-visual-large {
+    width: 100px;
+    height: 140px;
+  }
+  /* Smaller size, used in the played-cards row */
+  .card-visual-small {
+    width: 60px;
+    height: 84px;
+  }
+  /* Fills the zoom overlay, sized via its container */
+  .card-visual-zoom {
+    width: 100%;
+    height: 100%;
+  }
+
+  #played-cards-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .played-card-slot {
+    position: relative;
+    width: 60px;
+    height: 84px;
+  }
+  .played-card-slot.cancelable,
+  .played-card-slot.usable-glow {
+    cursor: pointer;
+  }
+  .played-card-slot.used-card .card-visual img,
+  .played-card-slot.used-card .card-visual.card-visual-fallback {
+    filter: grayscale(1);
+    opacity: 0.55;
+  }
+  /* Lands eligible as a target, and cards eligible to be played or
+     resolved this phase, share the same highlight treatment. */
+  .land-targetable,
+  .card-highlight {
+    outline: 4px solid #ffdd33;
+    outline-offset: 3px;
+    cursor: pointer;
+  }
+
+  #targeting-arrow-svg {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 40;
+  }
+
+  /* --- Right-click card zoom --- */
+  #card-zoom-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+  }
+  #card-zoom-overlay.hidden { display: none; }
+  #card-zoom-panel {
+    position: relative;
+  }
+  #card-zoom-content {
+    width: 320px;
+    height: 448px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 14px 44px rgba(0,0,0,0.55);
+  }
+  #card-zoom-content .card-visual {
+    width: 100%;
+    height: 100%;
+    cursor: default;
+  }
+  #card-zoom-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background: #c0392b;
+    color: white;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    z-index: 1;
+  }
