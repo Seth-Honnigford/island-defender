@@ -2,6 +2,8 @@ import { boardAState } from "../data/board-a.js";
 import { getRelativePos } from "./utils.js";
 import {
   animatePieceAdd,
+  addInvaderPiece,
+  getPieceTotal,
   landMatchesCard,
   shouldExplore,
   sortedLandIds,
@@ -196,7 +198,7 @@ async function exploreCard(card) {
   const landIds = sortedLandIds((land) => landMatchesCard(land, card) && shouldExplore(land));
   for (const landId of landIds) {
     await animatePieceAdd(landId, "explorer", () => {
-      boardAState[landId].pieces.explorer += 1;
+      addInvaderPiece(boardAState[landId], "explorer");
     });
   }
 }
@@ -204,14 +206,14 @@ async function exploreCard(card) {
 async function buildCard(card) {
   const landIds = sortedLandIds((land) => {
     if (!landMatchesCard(land, card)) return false;
-    return land.pieces.explorer > 0 || land.pieces.town > 0 || land.pieces.city > 0;
+    return getPieceTotal(land, "explorer") > 0 || getPieceTotal(land, "town") > 0 || getPieceTotal(land, "city") > 0;
   });
 
   for (const landId of landIds) {
     const land = boardAState[landId];
-    const pieceType = land.pieces.town > land.pieces.city ? "city" : "town";
+    const pieceType = getPieceTotal(land, "town") > getPieceTotal(land, "city") ? "city" : "town";
     await animatePieceAdd(landId, pieceType, () => {
-      land.pieces[pieceType] += 1;
+      addInvaderPiece(land, pieceType);
     });
   }
 }
@@ -271,7 +273,7 @@ async function ravageCard(card) {
   const landIds = sortedLandIds((land) => landMatchesCard(land, card));
   for (const landId of landIds) {
     const land = boardAState[landId];
-    const damage = land.pieces.explorer * 1 + land.pieces.town * 2 + land.pieces.city * 3;
+    const damage = getPieceTotal(land, "explorer") * 1 + getPieceTotal(land, "town") * 2 + getPieceTotal(land, "city") * 3;
     if (damage >= 2) {
       await addBlightWithCascadeAsync(landId);
     }

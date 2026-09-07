@@ -7,4 +7,8 @@ export const card = {
   range: 1,
   sacredSite: true,
   target: ["dahan"],
+  effects: [
+    { type: "damage", amount: 1 },
+    { type: "push", pieceType: "dahan", count: 1 },
+  ],
 };

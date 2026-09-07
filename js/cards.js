@@ -1,6 +1,7 @@
 import { spirits, activeSpiritId, renderEnergyBadge } from "./spirits.js";
 import { boardAState, landMatchesTargetList } from "./board.js";
 import { getCurrentPhaseId } from "./phases.js";
+import { resolveCardEffects, isResolvingEffects } from "./effects.js";
 
 // =========================================================
 // HAND / DISCARD PILE ICONS
@@ -216,7 +217,7 @@ export function getValidTargets(spiritId, card) {
 let targetingState = null;
 
 export function startTargeting(card, cardEl) {
-  if (targetingState) return;
+  if (targetingState || isResolvingEffects) return;
 
   const validTargets = getValidTargets(activeSpiritId, card);
   if (validTargets.length === 0) return;
@@ -272,10 +273,11 @@ export function startTargeting(card, cardEl) {
   landEls.forEach((landEl) => {
     landEl.addEventListener(
       "click",
-      (e) => {
+      async (e) => {
         e.stopPropagation();
-        resolveCardTarget(card, Number(landEl.dataset.landId));
+        const chosenLandId = Number(landEl.dataset.landId);
         cleanup();
+        await resolveCardTarget(card, chosenLandId);
       },
       { once: true }
     );
@@ -290,9 +292,8 @@ export function startTargeting(card, cardEl) {
   targetingState = { card, cleanup };
 }
 
-function resolveCardTarget(card, landId) {
-  // Effect resolution comes in a later step - for now, just mark the
-  // card as used once a valid target has been chosen.
+async function resolveCardTarget(card, landId) {
+  await resolveCardEffects(card, landId);
   card.used = true;
   renderPlayedCardsRow();
 }

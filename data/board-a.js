@@ -1,15 +1,20 @@
 // Board A's land data: terrain, coastal status, adjacency, and
 // starting invader pieces. `presence` starts empty and is populated
 // per-spirit by applySpiritSetup() in spirits.js.
+//
+// Invader pieces that can take damage (explorer/town/city) are stored
+// as an object mapping damage-level -> count, e.g. { 0: 2, 1: 1 } means
+// 2 undamaged and 1 damaged-by-1. Dahan and Blight aren't part of this
+// damage system, so they stay plain numbers.
 export const boardAState = {
-  1: { terrain: "mountain", coastal: true,  adjacent: [2, 4, 5, 6], pieces: { dahan: 0, city: 0, town: 0, blight: 0, explorer: 0 }, presence: {} },
-  2: { terrain: "wetland",  coastal: true,  adjacent: [1, 3, 4],    pieces: { dahan: 1, city: 1, town: 0, blight: 0, explorer: 0 }, presence: {} },
-  3: { terrain: "jungle",   coastal: true,  adjacent: [2, 4],       pieces: { dahan: 2, city: 0, town: 0, blight: 0, explorer: 0 }, presence: {} },
-  4: { terrain: "sands",    coastal: false, adjacent: [1, 2, 3, 5], pieces: { dahan: 0, city: 0, town: 0, blight: 1, explorer: 0 }, presence: {} },
-  5: { terrain: "wetland",  coastal: false, adjacent: [1, 4, 6, 7, 8], pieces: { dahan: 0, city: 0, town: 0, blight: 0, explorer: 0 }, presence: {} },
-  6: { terrain: "mountain", coastal: false, adjacent: [1, 5, 8],    pieces: { dahan: 1, city: 0, town: 0, blight: 0, explorer: 0 }, presence: {} },
-  7: { terrain: "sands",    coastal: false, adjacent: [5, 8],       pieces: { dahan: 2, city: 0, town: 0, blight: 0, explorer: 0 }, presence: {} },
-  8: { terrain: "jungle",   coastal: false, adjacent: [5, 6, 7],    pieces: { dahan: 0, city: 0, town: 1, blight: 0, explorer: 0 }, presence: {} },
+  1: { terrain: "mountain", coastal: true,  adjacent: [2, 4, 5, 6], pieces: { dahan: 0, city: { 0: 0 }, town: { 0: 0 }, blight: 0, explorer: { 0: 0 } }, presence: {} },
+  2: { terrain: "wetland",  coastal: true,  adjacent: [1, 3, 4],    pieces: { dahan: 1, city: { 0: 1 }, town: { 0: 0 }, blight: 0, explorer: { 0: 0 } }, presence: {} },
+  3: { terrain: "jungle",   coastal: true,  adjacent: [2, 4],       pieces: { dahan: 2, city: { 0: 0 }, town: { 0: 0 }, blight: 0, explorer: { 0: 0 } }, presence: {} },
+  4: { terrain: "sands",    coastal: false, adjacent: [1, 2, 3, 5], pieces: { dahan: 0, city: { 0: 0 }, town: { 0: 0 }, blight: 1, explorer: { 0: 0 } }, presence: {} },
+  5: { terrain: "wetland",  coastal: false, adjacent: [1, 4, 6, 7, 8], pieces: { dahan: 0, city: { 0: 0 }, town: { 0: 0 }, blight: 0, explorer: { 0: 0 } }, presence: {} },
+  6: { terrain: "mountain", coastal: false, adjacent: [1, 5, 8],    pieces: { dahan: 1, city: { 0: 0 }, town: { 0: 0 }, blight: 0, explorer: { 0: 0 } }, presence: {} },
+  7: { terrain: "sands",    coastal: false, adjacent: [5, 8],       pieces: { dahan: 2, city: { 0: 0 }, town: { 0: 0 }, blight: 0, explorer: { 0: 0 } }, presence: {} },
+  8: { terrain: "jungle",   coastal: false, adjacent: [5, 6, 7],    pieces: { dahan: 0, city: { 0: 0 }, town: { 0: 1 }, blight: 0, explorer: { 0: 0 } }, presence: {} },
 };
 
 // Tile dimensions (must match the CSS .land width/height)

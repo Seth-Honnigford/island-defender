@@ -194,16 +194,7 @@ html, body {
     font-size: 0.62rem;
     font-weight: 700;
     border: 2px solid rgba(0,0,0,0.25);
-    cursor: pointer;
     user-select: none;
-    transition: transform 0.05s ease, opacity 0.1s ease;
-  }
-  .piece-badge:hover {
-    transform: scale(1.12);
-    opacity: 0.85;
-  }
-  .piece-badge:active {
-    transform: scale(0.95);
   }
 
   .piece-count {
@@ -221,6 +212,25 @@ html, body {
     justify-content: center;
     border: 1px solid white;
     pointer-events: none;
+  }
+
+  /* Small red dots at the bottom of a piece badge, one per point of
+     damage it has taken so far. */
+  .damage-dots {
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2px;
+    pointer-events: none;
+  }
+  .damage-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #e70000;
+    border: 1px solid #8a0000;
   }
 
   /* Dahan: not an invader, keeps its own color */
@@ -252,6 +262,19 @@ html, body {
   }
   .piece-burst.shrink {
     transform: translate(-50%, -50%) scale(0.1);
+    opacity: 0;
+  }
+
+  /* Reverse of the above: starts small/opaque (as if it were the
+     piece itself) and grows outward while fading, to show a piece
+     being destroyed. */
+  .piece-burst.piece-burst-remove-start {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 1;
+    transition: transform 1.6s ease-out, opacity 1.6s ease-out;
+  }
+  .piece-burst.piece-burst-remove-start.grow-fade {
+    transform: translate(-50%, -50%) scale(2.2);
     opacity: 0;
   }
 
@@ -354,14 +377,6 @@ html, body {
     position: absolute;
     z-index: 15;
     transform-origin: center;
-  }
-
-  #hint-text {
-    color: rgba(255,255,255,0.9);
-    font-size: 0.8rem;
-    text-align: center;
-    max-width: 500px;
-    margin-top: 2px;
   }
 
   /* --- Player row: rock icon opens the spirit board --- */

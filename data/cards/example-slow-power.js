@@ -7,4 +7,7 @@ export const card = {
   range: 0,
   sacredSite: false,
   target: ["jungle", "wetland"],
+  effects: [
+    { type: "pull", pieceType: "explorer", count: 1 },
+  ],
 };
