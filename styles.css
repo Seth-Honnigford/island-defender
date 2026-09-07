@@ -804,3 +804,25 @@ html, body {
     cursor: pointer;
     z-index: 1;
   }
+
+  /* Status prompt shown while a card's effects (damage/push/pull)
+     are being resolved, telling the player what to click next. */
+  #effect-status {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 20, 20, 0.9);
+    color: #ffdd33;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 2px solid #ffdd33;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    z-index: 45;
+    text-align: center;
+  }
+  #effect-status.hidden {
+    display: none;
+  }

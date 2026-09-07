@@ -14,10 +14,35 @@ import {
 export let isResolvingEffects = false;
 
 // =========================================================
+// On-screen prompt telling the player what to click next. Without
+// this, a multi-click effect (push/pull select piece, then select a
+// land) can look like nothing is happening.
+// =========================================================
+function showEffectStatus(text) {
+  const el = document.getElementById("effect-status");
+  if (!el) return;
+  el.textContent = text;
+  el.classList.remove("hidden");
+}
+
+function hideEffectStatus() {
+  const el = document.getElementById("effect-status");
+  if (el) el.classList.add("hidden");
+}
+
+// =========================================================
 // Generic "highlight some things on the board, wait for a click"
-// helper shared by damage assignment, push, and pull.
+// helper shared by damage assignment, push, and pull. Resolves with
+// null (instead of hanging forever) if there's nothing to highlight,
+// since that indicates a data/DOM mismatch rather than "the player
+// hasn't clicked yet".
 // =========================================================
 function highlightAndAwaitClick(elements) {
+  if (!elements || elements.length === 0) {
+    console.warn("highlightAndAwaitClick called with no elements - skipping this step.");
+    return Promise.resolve(null);
+  }
+
   return new Promise((resolve) => {
     elements.forEach((el) => el.classList.add("card-highlight"));
 
@@ -69,9 +94,16 @@ async function assignDamage(landId, amount) {
       })
       .filter(Boolean);
 
-    const chosenEl = await highlightAndAwaitClick(badges.map((b) => b.badge));
-    const chosen = badges.find((b) => b.badge === chosenEl);
+    if (badges.length === 0) {
+      console.warn(`No matching badges found for damageable stacks in land ${landId} - stopping damage assignment.`);
+      break;
+    }
 
+    showEffectStatus(`Assign 1 damage: click an invader in Land ${landId}.`);
+    const chosenEl = await highlightAndAwaitClick(badges.map((b) => b.badge));
+    if (!chosenEl) break;
+
+    const chosen = badges.find((b) => b.badge === chosenEl);
     await applyDamageToStack(landId, chosen.type, chosen.damageLevel);
   }
 }
@@ -86,13 +118,28 @@ async function pushPieces(landId, pieceType, count) {
     if (getPieceTotal(land, pieceType) <= 0) break; // nothing left to push
 
     const originBadges = getPieceBadgesInLand(landId, pieceType);
+    if (originBadges.length === 0) {
+      console.warn(`Expected a ${pieceType} badge in land ${landId} to push, but none was found in the DOM.`);
+      break;
+    }
+
+    showEffectStatus(`Push: click the ${pieceType} to push out of Land ${landId}.`);
     const chosenBadge = await highlightAndAwaitClick(originBadges);
+    if (!chosenBadge) break;
+
     const damageLevel = chosenBadge.dataset.damageLevel !== undefined ? Number(chosenBadge.dataset.damageLevel) : undefined;
 
     const destLandEls = land.adjacent.map((id) => getLandEl(id)).filter(Boolean);
-    const chosenLandEl = await highlightAndAwaitClick(destLandEls);
-    const destLandId = Number(chosenLandEl.dataset.landId);
+    if (destLandEls.length === 0) {
+      console.warn(`Land ${landId} has no adjacent lands rendered - cannot push.`);
+      break;
+    }
 
+    showEffectStatus(`Push: click a land adjacent to Land ${landId} to push it to.`);
+    const chosenLandEl = await highlightAndAwaitClick(destLandEls);
+    if (!chosenLandEl) break;
+
+    const destLandId = Number(chosenLandEl.dataset.landId);
     movePieceUnit(landId, destLandId, pieceType, damageLevel);
     renderBoard(boardAState);
   }
@@ -109,7 +156,15 @@ async function pullPieces(landId, pieceType, count) {
     if (candidateLandIds.length === 0) break; // nothing adjacent to pull
 
     const candidateBadges = candidateLandIds.flatMap((id) => getPieceBadgesInLand(id, pieceType));
+    if (candidateBadges.length === 0) {
+      console.warn(`Expected ${pieceType} badges adjacent to land ${landId} to pull, but none were found in the DOM.`);
+      break;
+    }
+
+    showEffectStatus(`Pull: click a ${pieceType} adjacent to Land ${landId} to pull it in.`);
     const chosenBadge = await highlightAndAwaitClick(candidateBadges);
+    if (!chosenBadge) break;
+
     const originLandId = Number(chosenBadge.dataset.landId);
     const damageLevel = chosenBadge.dataset.damageLevel !== undefined ? Number(chosenBadge.dataset.damageLevel) : undefined;
 
@@ -121,19 +176,28 @@ async function pullPieces(landId, pieceType, count) {
 // =========================================================
 // Effect dispatch. Card effects are plain data: { type, ... }.
 // Adding a new effect type means adding one case here.
+//
+// Wrapped in try/finally so that any unexpected error still resets
+// isResolvingEffects and hides the status prompt, instead of leaving
+// the whole game permanently locked out of future card interactions.
 // =========================================================
 export async function resolveCardEffects(card, targetLandId) {
   isResolvingEffects = true;
 
-  for (const effect of card.effects || []) {
-    if (effect.type === "damage") {
-      await assignDamage(targetLandId, effect.amount);
-    } else if (effect.type === "push") {
-      await pushPieces(targetLandId, effect.pieceType, effect.count);
-    } else if (effect.type === "pull") {
-      await pullPieces(targetLandId, effect.pieceType, effect.count);
+  try {
+    for (const effect of card.effects || []) {
+      if (effect.type === "damage") {
+        await assignDamage(targetLandId, effect.amount);
+      } else if (effect.type === "push") {
+        await pushPieces(targetLandId, effect.pieceType, effect.count);
+      } else if (effect.type === "pull") {
+        await pullPieces(targetLandId, effect.pieceType, effect.count);
+      }
     }
+  } catch (err) {
+    console.error("Error resolving card effects:", err);
+  } finally {
+    hideEffectStatus();
+    isResolvingEffects = false;
   }
-
-  isResolvingEffects = false;
 }
