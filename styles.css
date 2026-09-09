@@ -727,18 +727,14 @@ html, body {
   }
 
   #played-cards-row {
-    position: absolute;
-    bottom: 10px;
+    position: fixed;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 8px;
     z-index: 10;
-    pointer-events: none;
-  }
-  #played-cards-row .played-card-slot {
-    pointer-events: auto;
   }
   .played-card-slot {
     position: relative;
